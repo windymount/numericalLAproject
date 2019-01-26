@@ -12,16 +12,16 @@ function [P,U,V] = multigrid(v1,v2,iterfunc,N)
 	Vcell = cell(gridnum,1);
 	rcell = cell(gridnum,1);
 	% initialize residual
-	% r:residual of Stokes function
-	r = zeros(2*N,N-1);
-	for i = 1:N
-		for j = 1:N-1
-			r(i,j) = f((j-1)/N,(i-0.5)/N);
+	% r:residual of Stokes function.Stored by a 2N*N-1 matrix
+	r = zeros(N-1,2*N);
+	for i = 1:N-1
+		for j = 1:N
+			r(i,j) = f(i/N,(j-0.5)*N);
 		end
 	end
-	for i = N+1:2*N
-		for j = 1:N-1
-			r(i,j) = g((i-0.5)/N,(j-1)/N);
+	for i = 1:N-1
+		for j = N+1:2*N
+			r(i,j) = g((j-0.5)/N,i/N);
 		end
 	end
 	rcell{1} = r;
@@ -58,3 +58,22 @@ function [P,U,V] = multigrid(v1,v2,iterfunc,N)
 			break
 		end
 	end
+end
+function r = confine(r)
+	N = length(r)/2;
+	ker = [0.125 0.25 0.125;0.125 0.25 0.125;0 0 0];
+	r = conv2(r,ker);
+	r = r(2:2:2*N,2:2:N-1);
+end
+function P = raiseP(P)
+	N = length(P);
+	ker = [0.25 0.25 0;0.25 0.25 0;0 0 0];
+	P = conv2(P,ker);
+	P = P(2:2:N,2:2:N);
+end
+function U = raiseU(U)
+	N = length(U) + 1;
+	ker = [0.125 0.25 0.125;0.125 0.25 0.125;0 0 0];
+	U = conv2(U,ker);
+	U = U(2:2:N,2:2:N-1);
+end
