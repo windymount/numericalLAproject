@@ -1,13 +1,13 @@
 function [P,U,V] = multigrid(v1,v2,iterfunc,N,gridnum)
 	% N:number of grids in discretization
 	% iterfunc:
-	TOL = 1e-4;
+	TOL = 1e-8;
 	f = @(x,y)(-4*pi^2*(2*cos(2*pi*x)-1)*sin(2*pi * y)+x^2);
 	g = @(x,y)(4*pi^2*(2*cos(2*pi*y)-1)*sin(2*pi * x));
 	P = zeros(N);
 	U = zeros(N-1,N);
 	V = zeros(N-1,N);
-	%U,V的储存方法：只存储内部非0值，按从左至右，从下至上的坐标顺序存储，各为�?N-1*N矩阵
+	%U,V的储存方法：只存储内部非0值，按从左至右，从下至上的坐标顺序存储，各为?N-1*N矩阵
 	Pcell = cell(gridnum,1);
 	Ucell = cell(gridnum,1);
 	Vcell = cell(gridnum,1);
@@ -62,8 +62,9 @@ function [P,U,V] = multigrid(v1,v2,iterfunc,N,gridnum)
 			end
 		end
 		r = rcell{1} - getresidual(P,U,V);
-		disp(norm(r))
-		if norm(r) < TOL
+        e = norm(r,'fro');
+		disp(e)
+		if e/N^2 < TOL
 			break
 		end
 	end
@@ -92,7 +93,15 @@ function U = raiseU(U)
 	for i = 1:2*N-1
 		for j = 1:2*N
 			if mod(i,2) == 0
-				temp(i,j) = U(i/2+1,floor((j+1)/2));
+				if j == 1
+					temp(i,j) = 0.5*U(i/2+1,1);
+				elseif j == 2*N
+					temp(i,j) = 0.5*U(i/2+1,N);
+				elseif mod(j,2) == 0
+					temp(i,j) = 0.75*U(i/2+1,j/2)+0.25*U(i/2+1,j/2+1);
+				else
+					temp(i,j) = 0.75*U(i/2+1,(j+1)/2)+0.25*U(i/2+1,(j+1)/2-1);
+				end
 			else
 				temp(i,j) = (U(floor(i/2)+1,floor((j+1)/2))+U(floor(i/2)+2,floor((j+1)/2)))/2;
 			end

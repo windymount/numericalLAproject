@@ -1,4 +1,4 @@
-function [P,U,V] = uzawa(P,U,V,r)
+function [P,U,V] = uzawa(P,U,V,r,itertimes)
 	N = length(P);
 	res = zeros(N-1,2*N);
 	for j = 1:N
@@ -10,7 +10,7 @@ function [P,U,V] = uzawa(P,U,V,r)
     U = [zeros(1,N); U; zeros(1,N)];
 	V = [zeros(1,N); V; zeros(1,N)];
 	tr = r - res;
-	for m = 1:1
+	for m = 1:itertimes
 		for i = 1:N
 			for j = 2:N
 				if i== 1
